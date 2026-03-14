@@ -16,7 +16,7 @@ autoconnect = true # Automatically connect to the server on startup (true/false)
 password = "" # Password to use when connecting to the server (leave blank for no password "")
 
 [window]
-size = [1920, 1009] # [width, height] in pixels # Set to 0, 0 to use borderless window
+size = [1080, 1080] # [width, height] in pixels # Set to 0, 0 to use borderless window
 location = [0, 23] # [x, y] in pixels
 
 [map]
