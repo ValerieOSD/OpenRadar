@@ -5,6 +5,8 @@ This class extracts all text rendering capabilities from the TrackRenderer, prov
 separation of concerns between shape/geometry rendering and text label rendering.
 """
 
+from os import close
+
 import numpy as np
 from typing import Dict, Optional
 
@@ -93,6 +95,7 @@ class RadarLabelsRenderer:
             track: The track object to render labels for
             track_type: The type of game object (used for label configuration lookup)
         """
+
         pos_x, pos_y = int(obj.U), int(obj.V)
 
         # Render each configured label at its specified location

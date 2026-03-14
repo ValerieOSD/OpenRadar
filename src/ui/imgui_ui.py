@@ -2,15 +2,22 @@ from imgui_bundle import imgui
 from imgui_bundle import portable_file_dialogs as pfd  # type: ignore
 from imgui_bundle.python_backends.glfw_backend import GlfwRenderer
 
+from coalition_manager import coalition_manager
+from render_data_arrays import clear_screen
+
 import numpy as np
 import datetime
 import os
+import time
+import tkinter as tk
+from tkinter import filedialog
 
 from logging_config import get_logger
 from draw.scene import Scene
 from draw.map_gl import MapGL
 from draw.annotations import MapAnnotations
 from game_object import GameObject
+import render_data_arrays
 from trtt_client import TRTTClientThread, ThreadState
 from game_state import GameState
 from game_object_types import GameObjectType
@@ -100,11 +107,20 @@ def create_checkbox(label, value, config_section, config_key):
 
 def create_color_edit(label, color, config_section, config_key):
     """Helper function to create a color picker and update configuration."""
-    changed, new_color = imgui.color_edit3(label, [*color])
+
+    col = imgui.ImVec4(color[0], color[1], color[2], 1.0)
+
+    changed, new_color = imgui.color_edit3(label, col)
+
     if changed:
-        color_tuple = (new_color[0], new_color[1], new_color[2])
-        config.app_config.set_color_from_normalized(config_section, config_key, color_tuple)
-    return changed, new_color
+        color_tuple = (new_color.x, new_color.y, new_color.z)
+        config.app_config.set_color_from_normalized(
+            config_section,
+            config_key,
+            color_tuple
+        )
+
+    return changed, (new_color.x, new_color.y, new_color.z)
 
 
 def update_config_if_changed(changed, config_section, config_key, value):
@@ -116,7 +132,7 @@ def update_config_if_changed(changed, config_section, config_key, value):
 class ImguiUserInterface:
 
     def __init__(self, size, window, scene: Scene, map_gl: MapGL, gamestate: GameState, tracks: SensorTracks,
-                 display_data: DisplayData, data_client: TRTTClientThread):
+                 display_data: DisplayData, data_client: TRTTClientThread, coalition_manager):
         self.size = size
         self.scene = scene
         self.map_gl: MapGL = map_gl
@@ -127,6 +143,7 @@ class ImguiUserInterface:
         self.data_client = data_client
         self.reset_state_callback = None
         self.render_refresh_callback = None
+        self.coalition_manager = coalition_manager
 
         # Initialize logger
         self.logger = get_logger(f"{__name__}.ImguiUserInterface")
@@ -169,6 +186,7 @@ class ImguiUserInterface:
         self.fps_window_open = False
         self.layers_window_open = False
         self.settings_window_open = False
+        self.coalition_window_open = False
         self.server_window_open = True
         self.notepad_window_open = False
         self.debug_window_open = False
@@ -215,6 +233,7 @@ class ImguiUserInterface:
         imgui.render()
         self.impl.render(imgui.get_draw_data())
         imgui.end_frame()
+        
 
     @property
     def fps(self):
@@ -346,6 +365,7 @@ class ImguiUserInterface:
         self.ui_bottom_bar()
         self.map_selection_dialog()
         self.fps_counter()
+        self.coalition_window()
         self.settings_window()
         self.server_window()
         self.notepad_window()
@@ -611,6 +631,8 @@ class ImguiUserInterface:
 
         if imgui.begin_main_menu_bar():
 
+            
+
             # File Dropdown
             if imgui.begin_menu('File', True):
                 # Map submenu
@@ -636,9 +658,13 @@ class ImguiUserInterface:
                         self.annotations.clear()
                     imgui.end_menu()
 
+
+                if imgui.menu_item("Coalition", "", False, True)[0]:
+                    self.coalition_window_open = True
+
+
                 if imgui.menu_item('Settings', "", self.settings_window_open, True)[0]:
                     self.settings_window_open = not self.settings_window_open
-
                 imgui.end_menu()
 
             # Windows Dropdown
@@ -776,6 +802,50 @@ class ImguiUserInterface:
         if not open:
             self.fps_window_open = False
 
+        create_checkbox("Enable MSAA", config.app_config.get_bool("display", "msaa_enabled"), "display", "msaa_enabled")
+        imgui.same_line()
+        imgui.text_disabled("(?)")
+        imgui.same_line()
+        if imgui.radio_button("MSAA 4x", config.app_config.get_int("display", "msaa_samples") == 4):
+            config.app_config.set("display", "msaa_samples", 4)
+        imgui.same_line()
+        if imgui.radio_button("MSAA 8x", config.app_config.get_int("display", "msaa_samples") == 8):
+            config.app_config.set("display", "msaa_samples", 8)
+        imgui.same_line()
+        if imgui.radio_button("MSAA 16x", config.app_config.get_int("display", "msaa_samples") == 16):
+            config.app_config.set("display", "msaa_samples", 16)
+        if imgui.is_item_hovered():
+            imgui.begin_tooltip()
+            imgui.text_unformatted("Enable Multi-Sample Anti-Aliasing (MSAA) for smoother edges.")
+            imgui.end_tooltip()
+
+
+
+        if not self.settings_window_open:
+            return
+
+        _, open = imgui.begin("Settings", True, imgui.WindowFlags_.always_auto_resize.value)
+        if imgui.begin_tab_bar("Settings Tabs"):
+            if imgui.begin_tab_item("Map")[0]:
+                self.settings_tab_map()
+                imgui.end_tab_item()
+            if imgui.begin_tab_item("Annotations")[0]:
+                self.settings_tab_annotations()
+                imgui.end_tab_item()
+            if imgui.begin_tab_item("Radar")[0]:
+                self.settings_tab_radar()
+                imgui.end_tab_item()
+            if imgui.begin_tab_item("Display")[0]:
+                self.settings_tab_display()
+                imgui.end_tab_item()
+            imgui.end_tab_bar()
+        imgui.end()
+
+        if not open:
+            self.logger.info("Settings window closed, Saving settings")
+            self.settings_window_open = False
+            config.app_config.save()
+
     def settings_window(self):
 
         if not self.settings_window_open:
@@ -802,6 +872,100 @@ class ImguiUserInterface:
             self.logger.info("Settings window closed, Saving settings")
             self.settings_window_open = False
             config.app_config.save()
+
+    def get_countries(self, gamestate: GameState):
+        countries = set()
+
+        for obj_dict in gamestate.objects.values():
+         for obj in obj_dict.values():
+                country = getattr(obj, "Coalition", None)
+                if country:
+                    countries.add(country)
+
+        return list(countries)
+    
+    def save_notepad_with_dialog(self, text: str):
+        root = tk.Tk()
+        root.withdraw()  # Hide the empty tkinter window
+
+        file_path = filedialog.asksaveasfilename(
+            defaultextension=".txt",
+            filetypes=[("Text Files", "*.txt")],
+            title="Save Notepad"
+        )
+
+        if not file_path:
+            return  # User cancelled
+
+        with open(file_path, "w", encoding="utf-8") as f:
+            f.write(text)
+
+        root.destroy()
+
+    def load_notepad_with_dialog(self) -> str:
+        root = tk.Tk()
+        root.withdraw()
+
+        file_path = filedialog.askopenfilename(
+            filetypes=[("Text Files", "*.txt")],
+            title="Load Notepad"
+        )
+
+        if not file_path:
+            root.destroy()
+            return ""
+
+        with open(file_path, "r", encoding="utf-8") as f:
+            content = f.read()
+
+        root.destroy()
+        return content
+    
+    def coalition_window(self):
+
+        if not self.coalition_window_open:
+            return
+
+        _, open = imgui.begin(
+            "Coalition",
+            True,
+            imgui.WindowFlags_.always_auto_resize.value
+        )
+
+        imgui.text("Set each coalition's relation to you.")
+        imgui.separator()
+
+        countries = self.get_countries(self.gamestate)  # or however you're collecting them
+        imgui.text(f"Detected countries: {len(countries)}")
+        for country in sorted(countries):
+            imgui.text(country)
+            imgui.same_line()
+
+            current = coalition_manager.get_relation(country)
+
+            if imgui.radio_button(f"Friendly##{country}", current == "friendly"):
+                coalition_manager.set_relation(country, "friendly")
+
+            imgui.same_line()
+
+            if imgui.radio_button(f"Neutral##{country}", current == "neutral"):
+                coalition_manager.set_relation(country, "neutral")
+
+            imgui.same_line()
+
+            if imgui.radio_button(f"Hostile##{country}", current == "hostile"):
+                coalition_manager.set_relation(country, "hostile")
+
+        if imgui.button("Refresh"):
+            self.gamestate.render_arrays.clear_all()
+            self.gamestate.render_arrays.rebuild_from_objects(
+                self.gamestate.all_objects
+            )
+
+        imgui.end()
+
+        if not open:
+            self.coalition_window_open = False
 
     def settings_tab_map(self):
         map_alpha = config.app_config.get_int("map", "map_alpha")
@@ -1043,18 +1207,48 @@ class ImguiUserInterface:
     def notepad_window(self):
         if not self.notepad_window_open:
             return
-        imgui.set_next_window_size_constraints(imgui.ImVec2(200, 200), imgui.ImVec2(float('inf'), float('inf')))
+
+        imgui.set_next_window_size_constraints(
+            imgui.ImVec2(200, 200),
+            imgui.ImVec2(float('inf'), float('inf'))
+        )
+
         _, open = imgui.begin("Notepad", True)
+
         notes = config.app_config.get_str("notepad", "notes")
 
-        # Get window size
+        # Get available size
         width, height = imgui.get_content_region_avail()
-        changed, notes = imgui.input_text_multiline("##notepad", notes, imgui.ImVec2(width, height),
-                                                    imgui.InputTextFlags_.allow_tab_input.value)
-        imgui.end()
+
+        # Reserve space for buttons (about 35px)
+        button_height = 35
+        text_height = height - button_height
+
+        # Multiline input
+        changed, notes = imgui.input_text_multiline(
+            "##notepad",
+            notes,
+            imgui.ImVec2(width, text_height),
+            imgui.InputTextFlags_.allow_tab_input.value
+        )
 
         if changed:
             config.app_config.set("notepad", "notes", notes)
+
+        # Buttons
+        if imgui.button("Save File"):
+            current_notes = config.app_config.get_str("notepad", "notes")
+            self.save_notepad_with_dialog(current_notes)
+
+        imgui.same_line()
+
+        if imgui.button("Load File"):
+            notes = self.load_notepad_with_dialog()
+            if notes != "":
+                config.app_config.set("notepad", "notes", notes)
+
+        imgui.end()
+
         if not open:
             self.notepad_window_open = False
 

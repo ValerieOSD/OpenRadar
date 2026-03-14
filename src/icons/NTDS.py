@@ -3,7 +3,7 @@ NTDS icon set for OpenRadar.
 
 This icon set uses NTDS symbology-inspired shapes and colors.
 """
-
+from coalition_manager import coalition_manager
 from typing import Optional, Tuple
 from game_object_types import GameObjectType
 from draw.shapes import Shapes
@@ -31,54 +31,71 @@ class NTDSIconSet:
             color_override is (R, G, B, A) values 0-255, or None for default color
         """
 
+        base_color = None
+
         # Fixed wing aircraft
         if object_type == GameObjectType.FIXEDWING:
-            if "Blue" in coalition or "US" in coalition:
-                return (Shapes.SQUARE, (0, 100, 255, 255))  # Blue square
-            elif "Red" in coalition or "OPFOR" in coalition:
-                return (Shapes.DIAMOND, (255, 50, 50, 255))  # Red diamond
-            else:
-                return (Shapes.CIRCLE, (255, 255, 0, 255))  # Yellow circle for unknown
+
+            # coalition contains the country tag
+            # example: "USA", "PRC", "ROK", "DPRK"
+            # Ask coalition manager for actual relation
+            relation = coalition_manager.get_relation(coalition)
+
+            if relation == "friendly":
+                return (Shapes.SQUARE, (0, 100, 255, 255))  # Friendly
+            elif relation == "hostile":
+                return (Shapes.DIAMOND, (255, 50, 50, 255))  # Hostile
+            elif relation == "neutral":
+                return (Shapes.CIRCLE, (255, 255, 0, 255))  # Neutral / unknown
 
         # Rotary wing aircraft (helicopters)
         elif object_type == GameObjectType.ROTARYWING:
-            if "Blue" in coalition or "US" in coalition:
-                return (Shapes.SEMICIRCLE, (0, 150, 255, 255))  # Blue semicircle
-            elif "Red" in coalition or "OPFOR" in coalition:
+
+            relation = coalition_manager.get_relation(coalition)
+
+            if relation == "friendly":
+                return (Shapes.HALF_DIAMOND, (0, 150, 255, 255))  # Blue semicircle
+            elif relation == "hostile":
                 return (Shapes.HALF_DIAMOND, (255, 50, 50, 255))  # Red half diamond
-            else:
-                return (Shapes.SEMICIRCLE, (255, 255, 0, 255))  # Yellow semicircle
+            elif relation == "neutral":
+                return (Shapes.HALF_DIAMOND, (255, 255, 0, 255))  # Yellow semicircle
 
         # Missiles
         elif object_type == GameObjectType.MISSILE:
-            if "Blue" in coalition or "US" in coalition:
+
+            relation = coalition_manager.get_relation(coalition)
+            if relation == "friendly":
                 return (Shapes.TOP_BOX, (100, 200, 255, 255))  # Light blue top box
-            elif "Red" in coalition or "OPFOR" in coalition:
+            elif relation == "hostile":
                 return (Shapes.TOP_BOX, (255, 100, 100, 255))  # Light red top box
-            else:
+            elif relation == "neutral":
                 return (Shapes.TOP_BOX, (255, 255, 100, 255))  # Light yellow top box
 
         # Ground units
         elif object_type == GameObjectType.GROUND:
-            if "Blue" in coalition or "US" in coalition:
+
+            relation = coalition_manager.get_relation(coalition)
+            if relation == "friendly":
                 return (Shapes.SQUARE, (0, 100, 200, 255))  # Dark blue square
-            elif "Red" in coalition or "OPFOR" in coalition:
+            elif relation == "hostile":
                 return (Shapes.SQUARE, (200, 50, 50, 255))  # Dark red square
-            else:
+            elif relation == "neutral":
                 return (Shapes.SQUARE, (150, 150, 0, 255))  # Dark yellow square
 
         # Sea units
         elif object_type == GameObjectType.SEA:
-            if "Blue" in coalition or "US" in coalition:
+
+            relation = coalition_manager.get_relation(coalition)
+            if relation == "friendly":
                 return (Shapes.SHIP, (0, 150, 255, 255))  # Blue ship
-            elif "Red" in coalition or "OPFOR" in coalition:
+            elif relation == "hostile":
                 return (Shapes.SHIP, (255, 50, 50, 255))  # Red ship
-            else:
+            elif relation == "neutral":
                 return (Shapes.SHIP, (255, 255, 0, 255))  # Yellow ship
 
         # Bullseye reference points
         elif object_type == GameObjectType.BULLSEYE:
-            return (Shapes.CIRCLE, (255, 255, 255, 255))  # White circle
+            return (None, (255, 255, 255, 255))  # White circle
 
         # Unknown or fallback
         else:

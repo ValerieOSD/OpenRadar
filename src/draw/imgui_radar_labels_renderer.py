@@ -89,6 +89,7 @@ class ImGuiRadarLabelsRenderer:
         Args:
             obj: The object that is currently being hovered, or None if no object is hovered
         """
+        
         self._hovered_object = obj
 
     def _compute_content_hash(self, text: str, obj: GameObject, location: TrackLabelLocation) -> str:
@@ -208,6 +209,15 @@ class ImGuiRadarLabelsRenderer:
         """
         # Render each configured label at its specified location
         for location, track_label in labels.labels.items():
+            # If this label is set to show only on hover,
+            # only render it when this object is currently hovered
+            if track_label.show_on_hover:
+                if self._hovered_object is None:
+                    continue
+
+                if self._hovered_object.object_id != obj.object_id:
+                    continue
+
             text = evaluate_input_format(track_label.label_format, obj)
 
             if text is not None and text != "":
@@ -225,6 +235,14 @@ class ImGuiRadarLabelsRenderer:
                 cached_label.x_screen = final_x
                 cached_label.y_screen = final_y
 
+    def _is_on_screen(self, screen_pos) -> bool:
+        io = imgui.get_io()
+
+        return (
+            0 <= screen_pos.x <= io.display_size.x and
+            0 <= screen_pos.y <= io.display_size.y
+        )
+
     def draw_all_ac_labels(self, gamestate: GameState):
         """
         Draw labels for all aircraft in the game state.
@@ -237,9 +255,17 @@ class ImGuiRadarLabelsRenderer:
             return
             
         fixed_wing_objs = gamestate.objects[GameObjectType.FIXEDWING]
+        rotary_wing_objs = gamestate.objects[GameObjectType.ROTARYWING]
+        missile_objs = gamestate.objects[GameObjectType.MISSILE]
+        ground_objs = gamestate.objects[GameObjectType.GROUND]
+        sea_objs = gamestate.objects[GameObjectType.SEA]
 
         # Get the label configuration for this track type
         labels = get_labels_for_class_type(GameObjectType.FIXEDWING)
+        labels2 = get_labels_for_class_type(GameObjectType.ROTARYWING)
+        labels3 = get_labels_for_class_type(GameObjectType.MISSILE)
+        labels4 = get_labels_for_class_type(GameObjectType.GROUND)
+        labels5 = get_labels_for_class_type(GameObjectType.SEA)
 
         # Get offset for positioning labels relative to track icons
         offset = config.app_config.get_int("radar", "contact_size")
@@ -247,9 +273,38 @@ class ImGuiRadarLabelsRenderer:
         total_offset = offset + label_padding
         font_scale = config.app_config.get_float("radar", "contact_font_scale") / 100.0  # Convert to ImGui scale
 
-        if labels is not None:
+        if labels is not None and labels2 is not None and labels3 is not None and labels4 is not None and labels5 is not None:
             for obj in fixed_wing_objs.values():
+                screen_pos = self.scene.world_to_screen(obj.get_pos())
+                if not self._is_on_screen(screen_pos):
+                    continue
                 self.draw_track_labels(obj, labels, total_offset, font_scale)
+
+            for obj in rotary_wing_objs.values():
+                screen_pos = self.scene.world_to_screen(obj.get_pos())
+                if not self._is_on_screen(screen_pos):
+                    continue
+                self.draw_track_labels(obj, labels2, total_offset, font_scale)
+
+
+            for obj in missile_objs.values():
+                screen_pos = self.scene.world_to_screen(obj.get_pos())
+                if not self._is_on_screen(screen_pos):
+                    continue
+                self.draw_track_labels(obj, labels3, total_offset, font_scale)
+                
+
+            for obj in ground_objs.values():
+                screen_pos = self.scene.world_to_screen(obj.get_pos())
+                if not self._is_on_screen(screen_pos):
+                    continue
+                self.draw_track_labels(obj, labels4, total_offset, font_scale)
+
+            for obj in sea_objs.values():
+                screen_pos = self.scene.world_to_screen(obj.get_pos())
+                if not self._is_on_screen(screen_pos):
+                    continue
+                self.draw_track_labels(obj, labels5, total_offset, font_scale)
 
     def draw_custom_text(self,
                          text: str,
