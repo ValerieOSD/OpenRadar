@@ -27,6 +27,10 @@ NTDS = Fancy icon set adding some clarity between contact icons. This also chang
 <img src="https://github.com/ValerieOSD/OpenRadar/blob/6f586ed2f2ad9cdd3d7d780e9b5a8bfe224d9d71/Data/NTDS.png" width="600">
 
 
+You can also customize the track labels of all targets visible on OpenRadar with your own text, or through the usage of variables such as speed, altitude, fuel, bullseye position and more.
+
+<img src="https://github.com/ValerieOSD/OpenRadar/blob/493ca90e8d328af058e5955ba3d9175ae4a5c1ad/Data/TrackLabels.png" width="600">
+
 ## Work in Progress
 This project is a work in progress. Features and functionalities are continuously being developed and improved. Some features will be incomplete or not functional. Your feedback and contributions are highly appreciated to help us enhance the tool.
 
