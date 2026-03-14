@@ -21,9 +21,9 @@ This line dictates what icon set the program will use. You cannot change this in
     [display]
     icon_set = "NTDS" # Icon set to use for displaying objects (NTDS, classic)
     ```
-Classic = Classic OpenRadar icons using colors from Tacview, this allows for extra customization and lets you change colors of all targets. 
+Classic = Classic OpenRadar icons
 
-NTDS = Fancy icon set adding some clarity between contact icons. This also changes colors of contacts depending on their relation (Blue, Red, Neutral). You can change each factions relation in the Coalition tab. 
+NTDS = Naval Tactical Data System symbology. You can change each faction's relation in the Coalition tab. 
 <img src="https://github.com/ValerieOSD/OpenRadar/blob/6f586ed2f2ad9cdd3d7d780e9b5a8bfe224d9d71/Data/NTDS.png" width="600">
 
 
