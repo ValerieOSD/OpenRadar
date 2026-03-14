@@ -42,11 +42,11 @@ class NTDSIconSet:
             relation = coalition_manager.get_relation(coalition)
 
             if relation == "friendly":
-                return (Shapes.SQUARE, (0, 100, 255, 255))  # Friendly
+                return (Shapes.SEMICIRCLE, base_color)  # Friendly
             elif relation == "hostile":
-                return (Shapes.DIAMOND, (255, 50, 50, 255))  # Hostile
+                return (Shapes.DIAMOND, base_color)  # Hostile
             elif relation == "neutral":
-                return (Shapes.CIRCLE, (255, 255, 0, 255))  # Neutral / unknown
+                return (Shapes.SQUARE, base_color)  # Neutral / unknown
 
         # Rotary wing aircraft (helicopters)
         elif object_type == GameObjectType.ROTARYWING:
@@ -54,49 +54,49 @@ class NTDSIconSet:
             relation = coalition_manager.get_relation(coalition)
 
             if relation == "friendly":
-                return (Shapes.HALF_DIAMOND, (0, 150, 255, 255))  # Blue semicircle
+                return (Shapes.TOP_BOX, base_color)  # Blue semicircle
             elif relation == "hostile":
-                return (Shapes.HALF_DIAMOND, (255, 50, 50, 255))  # Red half diamond
+                return (Shapes.HALF_DIAMOND, base_color)  # Red half diamond
             elif relation == "neutral":
-                return (Shapes.HALF_DIAMOND, (255, 255, 0, 255))  # Yellow semicircle
+                return (Shapes.HALF_DIAMOND, base_color)  # Yellow semicircle
 
         # Missiles
         elif object_type == GameObjectType.MISSILE:
 
             relation = coalition_manager.get_relation(coalition)
             if relation == "friendly":
-                return (Shapes.TOP_BOX, (100, 200, 255, 255))  # Light blue top box
+                return (Shapes.SMALL_DIAMOND, base_color)  # Light blue top box
             elif relation == "hostile":
-                return (Shapes.TOP_BOX, (255, 100, 100, 255))  # Light red top box
+                return (Shapes.SMALL_DIAMOND, base_color)  # Light red top box
             elif relation == "neutral":
-                return (Shapes.TOP_BOX, (255, 255, 100, 255))  # Light yellow top box
+                return (Shapes.SMALL_DIAMOND, base_color)  # Light yellow top box
 
         # Ground units
         elif object_type == GameObjectType.GROUND:
 
             relation = coalition_manager.get_relation(coalition)
             if relation == "friendly":
-                return (Shapes.SQUARE, (0, 100, 200, 255))  # Dark blue square
+                return (Shapes.CIRCLE, base_color)  # Dark blue square
             elif relation == "hostile":
-                return (Shapes.SQUARE, (200, 50, 50, 255))  # Dark red square
+                return (Shapes.CIRCLE, base_color)  # Dark red square
             elif relation == "neutral":
-                return (Shapes.SQUARE, (150, 150, 0, 255))  # Dark yellow square
+                return (Shapes.CIRCLE, base_color)  # Dark yellow square
 
         # Sea units
         elif object_type == GameObjectType.SEA:
 
             relation = coalition_manager.get_relation(coalition)
             if relation == "friendly":
-                return (Shapes.SHIP, (0, 150, 255, 255))  # Blue ship
+                return (Shapes.SHIP, base_color)  # Blue ship
             elif relation == "hostile":
-                return (Shapes.SHIP, (255, 50, 50, 255))  # Red ship
+                return (Shapes.SHIP, base_color)  # Red ship
             elif relation == "neutral":
-                return (Shapes.SHIP, (255, 255, 0, 255))  # Yellow ship
+                return (Shapes.SHIP, base_color)  # Yellow ship
 
         # Bullseye reference points
         elif object_type == GameObjectType.BULLSEYE:
-            return (None, (255, 255, 255, 255))  # White circle
+            return (None, base_color)  # White circle
 
         # Unknown or fallback
         else:
-            return (Shapes.CIRCLE, (128, 128, 128, 255))  # Gray circle
+            return (Shapes.CIRCLE, base_color)  # Gray circle
