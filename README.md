@@ -11,29 +11,21 @@ UOAF OpenRadar for BMS Falcon 4.0
     ```
 3. Run OpenRadar.exe and connect to the server in the settings page
 
-## Compile Workflow
+## Configuration & Customization
+When you run OpenRadar.exe, a config file will be generated in the same directory called "OpenRadar.toml"
+This file contains a bunch of configuration stuff that you can change in the file, or through the in-program settings.
 
-1. Install Python.
-2. Create venv (optional, but strongly recommended)
-```bash
-python -m venv venv
-.\venv\Scripts\Activate
-```
-3. Install dependencies
-```bash
-pip install -r .\requirements.txt
-```
-4. Create executable
-```bash
-pyinstaller .\OpenRadar.spec
-```
-5. Compiled exe will be generated to `\dist` directly.
+This line dictates what icon set the program will use. You cannot change this in the application.
 
-### TIPS
+    ```
+    [display]
+    icon_set = "NTDS" # Icon set to use for displaying objects (NTDS, classic)
+    ```
+Classic = Classic OpenRadar icons using colors from Tacview, this allows for extra customization and lets you change colors of all targets. 
 
-- to check scripts install directly `> python -m site --user-site`
-then locate to `../Scripts` from there, you will find pyinstaller.exe
-so you can add environment path to the directly.
+NTDS = Fancy icon set adding some clarity between contact icons. This also changes colors of contacts depending on their relation (Blue, Red, Neutral). You can change each factions relation in the Coalition tab. 
+<img src="https://github.com/ValerieOSD/OpenRadar/blob/6f586ed2f2ad9cdd3d7d780e9b5a8bfe224d9d71/Data/NTDS.png" width="600">
+
 
 ## Work in Progress
 This project is a work in progress. Features and functionalities are continuously being developed and improved. Some features will be incomplete or not functional. Your feedback and contributions are highly appreciated to help us enhance the tool.
