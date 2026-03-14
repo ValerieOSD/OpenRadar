@@ -9,7 +9,12 @@ UOAF OpenRadar for BMS Falcon 4.0
     set g_bTacviewRealTime 1
     set g_nTacviewPort 42674
     ```
-3. Run OpenRadar.exe and connect to the server in the settings page
+3. Run OpenRadar.exe and connect to the server in the settings page. Make sure to be in-game and in 3D or telemetry won't be visible!
+   
+(Optional - P2P)
+
+4. You can also use OpenRadar through Peer to Peer, this means you don't need BMS running or even installed.
+Instead you can use someone else's Tacview Real-Time Telemetry, tell them to open their chosen port (Default is 42674) to the internet on their router using their local address.
 
 ## Configuration & Customization
 When you run OpenRadar.exe, a config file will be generated in the same directory called "OpenRadar.toml"
