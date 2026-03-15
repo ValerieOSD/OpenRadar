@@ -33,7 +33,7 @@ NTDS = Naval Tactical Data System symbology. You can change each faction's relat
 
 
 You can also customize the track labels of all targets visible on OpenRadar with your own text, or through the usage of variables such as speed, altitude, fuel, bullseye position and more.
-
+List of variables [here](https://github.com/ValerieOSD/OpenRadar/wiki/Track-Label-Variables).
 <img src="https://github.com/ValerieOSD/OpenRadar/blob/493ca90e8d328af058e5955ba3d9175ae4a5c1ad/Data/TrackLabels.png" width="600">
 
 ## Work in Progress
